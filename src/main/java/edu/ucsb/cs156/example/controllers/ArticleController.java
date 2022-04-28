@@ -11,6 +11,7 @@ import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,7 +60,7 @@ public class ArticleController extends ApiController {
         @ApiParam("url") @RequestParam String url,
         @ApiParam("explanation") @RequestParam String explanation,
         @ApiParam("email") @RequestParam String email,
-        @ApiParam("dateAdded") @RequestParam LocalDateTime dateAdded
+        @ApiParam("date (in iso format, e.g. YYYY-mm-ddTHH:MM:SS; see https://en.wikipedia.org/wiki/ISO_8601)") @RequestParam("dateAdded") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateAdded
         )
         {
         Article article = new Article();
@@ -77,7 +78,7 @@ public class ArticleController extends ApiController {
     @ApiOperation(value = "Delete an article")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("")
-    public Object deleteCommons(
+    public Object deleteArticle(
             @ApiParam("id") @RequestParam Long id) {
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(Article.class, id));

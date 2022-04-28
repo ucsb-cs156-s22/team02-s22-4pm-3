@@ -270,7 +270,7 @@ public class ArticleControllerTests extends ControllerTestCase {
 
                 Article articleEdited = Article.builder()
                                 .title("Edited Article")
-                                .url("/api/Article?id=1")
+                                .url("/api/Article?id=2")
                                 .explanation("Checks if admin can edit an article (edited)")
                                 .email("doughercalvin@gmail.com")
                                 .dateAdded(ldt2)
