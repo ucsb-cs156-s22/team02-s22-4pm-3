@@ -173,7 +173,7 @@ public class ArticleControllerTests extends ControllerTestCase {
 
         @WithMockUser(roles = { "ADMIN", "USER" })
         @Test
-        public void an_admin_user_can_post_a_new_article() throws Exception {
+        public void admin_can_post_a_new_article() throws Exception {
                 // arrange
 
                 LocalDateTime ldt = LocalDateTime.parse("2022-04-26T00:00:00");
@@ -181,7 +181,7 @@ public class ArticleControllerTests extends ControllerTestCase {
                 Article article = Article.builder()
                                 .title("Test Article 1")
                                 .url("/api/Article?id=0")
-                                .explanation("Checks if admin user can post a new article")
+                                .explanation("Checks if admin can post a new article")
                                 .email("cwdougher@ucsb.edu")
                                 .dateAdded(ldt)
                                 .build();
@@ -190,7 +190,7 @@ public class ArticleControllerTests extends ControllerTestCase {
 
                 // act
                 MvcResult response = mockMvc.perform(
-                                post("/api/Article/post?title=Test Article 1&url=/api/Article?id=0&explanation=Checks if admin user can post a new article&email=cwdougher@ucsb.edu&dateAdded=2022-04-26T00:00:00")
+                                post("/api/Article/post?title=Test Article 1&url=/api/Article?id=0&explanation=Checks if admin can post a new article&email=cwdougher@ucsb.edu&dateAdded=2022-04-26T00:00:00")
                                                 .with(csrf()))
                                 .andExpect(status().isOk()).andReturn();
 
@@ -199,5 +199,135 @@ public class ArticleControllerTests extends ControllerTestCase {
                 String expectedJson = mapper.writeValueAsString(article);
                 String responseString = response.getResponse().getContentAsString();
                 assertEquals(expectedJson, responseString);
+        }
+
+        @WithMockUser(roles = { "ADMIN", "USER" })
+        @Test
+        public void admin_can_delete_an_article() throws Exception {
+                // arrange
+                
+                LocalDateTime ldt = LocalDateTime.parse("2022-04-26T00:00:00");
+
+                Article article = Article.builder()
+                                .title("Test Article 1")
+                                .url("/api/Article?id=1")
+                                .explanation("Checks if admin can delete an article")
+                                .email("cwdougher@ucsb.edu")
+                                .dateAdded(ldt)
+                                .build();
+
+                when(articleRepository.findById(eq(1L))).thenReturn(Optional.of(article));
+
+                // act
+                MvcResult response = mockMvc.perform(
+                                delete("/api/Article?id=1")
+                                                .with(csrf()))
+                                .andExpect(status().isOk()).andReturn();
+
+                // assert
+                verify(articleRepository, times(1)).findById(1L);
+                verify(articleRepository, times(1)).delete(any());
+
+                Map<String, Object> json = responseToJson(response);
+                assertEquals("Article with id 1 deleted", json.get("message"));
+        }
+
+        @WithMockUser(roles = { "ADMIN", "USER" })
+        @Test
+        public void admin_tries_to_delete_non_existent_article_and_gets_correct_error_message()
+                        throws Exception {
+                // arrange
+
+                when(articleRepository.findById(eq(1L))).thenReturn(Optional.empty());
+
+                // act
+                MvcResult response = mockMvc.perform(
+                                delete("/api/Article?id=1")
+                                                .with(csrf()))
+                                .andExpect(status().isNotFound()).andReturn();
+
+                // assert
+                verify(articleRepository, times(1)).findById(1L);
+                Map<String, Object> json = responseToJson(response);
+                assertEquals("Article with id 1 not found", json.get("message"));
+        }
+
+        @WithMockUser(roles = { "ADMIN", "USER" })
+        @Test
+        public void admin_can_edit_an_existing_article() throws Exception {
+                // arrange
+                
+                LocalDateTime ldt1 = LocalDateTime.parse("2022-04-26T00:00:00");
+                LocalDateTime ldt2 = LocalDateTime.parse("2022-04-26T12:00:00");
+
+                Article articleOrig = Article.builder()
+                                .title("Original Article")
+                                .url("/api/Article?id=1")
+                                .explanation("Checks if admin can edit an article (original)")
+                                .email("cwdougher@ucsb.edu")
+                                .dateAdded(ldt1)
+                                .build();
+
+                Article articleEdited = Article.builder()
+                                .title("Edited Article")
+                                .url("/api/Article?id=1")
+                                .explanation("Checks if admin can edit an article (edited)")
+                                .email("doughercalvin@gmail.com")
+                                .dateAdded(ldt2)
+                                .build();
+
+                String requestBody = mapper.writeValueAsString(articleEdited);
+
+                when(articleRepository.findById(eq(1L))).thenReturn(Optional.of(articleOrig));
+
+                // act
+                MvcResult response = mockMvc.perform(
+                                put("/api/Article?id=1")
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .characterEncoding("utf-8")
+                                                .content(requestBody)
+                                                .with(csrf()))
+                                .andExpect(status().isOk()).andReturn();
+
+                // assert
+                verify(articleRepository, times(1)).findById(1L);
+                verify(articleRepository, times(1)).save(articleEdited); // should be saved with updated info
+                String responseString = response.getResponse().getContentAsString();
+                assertEquals(requestBody, responseString);
+        }
+
+        @WithMockUser(roles = { "ADMIN", "USER" })
+        @Test
+        public void admin_cannot_edit_article_that_does_not_exist() throws Exception {
+                // arrange
+                
+                LocalDateTime ldt = LocalDateTime.parse("2022-04-26T00:00:00");
+
+                Article editedArticle = Article.builder()
+                                .title("Test Article 1")
+                                .url("/api/Article?id=1")
+                                .explanation("Checks if admin can edit an article that does not exist")
+                                .email("cwdougher@ucsb.edu")
+                                .dateAdded(ldt)
+                                .build();
+
+                String requestBody = mapper.writeValueAsString(editedArticle);
+
+                when(articleRepository.findById(eq(1L))).thenReturn(Optional.empty());
+
+                // act
+                MvcResult response = mockMvc.perform(
+                                put("/api/Article?id=1")
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .characterEncoding("utf-8")
+                                                .content(requestBody)
+                                                .with(csrf()))
+                                .andExpect(status().isNotFound()).andReturn();
+
+                // assert
+                verify(articleRepository, times(1)).findById(1L);
+                Map<String, Object> json = responseToJson(response);
+                assertEquals("Article with id 1 not found", json.get("message"));
+
         }
 }
