@@ -65,7 +65,7 @@ public class HelpRequestController extends ApiController{
         {
 
             HelpRequest requests = new HelpRequest();
-            requests.setCode(code);
+            // requests.setCode(code);
             requests.setRequesterEmail(requesterEmail);
             requests.setTeamId(teamId);
             requests.setTableOrBreakoutRoom(tableOrBreakoutRoom);
@@ -101,7 +101,7 @@ public class HelpRequestController extends ApiController{
                 .orElseThrow(() -> new EntityNotFoundException(HelpRequest.class, code));
 
 
-                requests.setCode(incoming.getCode());  
+                // requests.setCode(incoming.getCode());  
                 requests.setRequesterEmail(incoming.getRequesterEmail());
                 requests.setTeamId(incoming.getTeamId());
                 requests.setTableOrBreakoutRoom(incoming.getTableOrBreakoutRoom());
