@@ -267,8 +267,8 @@ public class MenuItemReviewControllerTests extends ControllerTestCase {
                 LocalDateTime temp1 = LocalDateTime.parse("2022-05-03T03:33:33");
                 MenuItemReview reviewEdited = MenuItemReview.builder()
                                 .id(2L)
-                                .itemId(4L)
-                                .reviewerEmail("test4@gmail.com")
+                                .itemId(8L)
+                                .reviewerEmail("test5@gmail.com")
                                 .stars(5)
                                 .comments("Much more flavorful")
                                 .dateReviewed(temp1)

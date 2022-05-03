@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.Valid;
 
@@ -58,7 +59,7 @@ public class MenuItemReviewController extends ApiController {
         @ApiParam("itemID") @RequestParam Long itemId,
         @ApiParam("reviewerEmail") @RequestParam String reviewerEmail,
         @ApiParam("stars") @RequestParam int stars,
-        @ApiParam("dateReviewed") @RequestParam LocalDateTime dateReviewed,
+        @ApiParam("dateReviewed (in iso format, e.g. YYYY-mm-ddTHH:MM:SS; see https://en.wikipedia.org/wiki/ISO_8601)") @RequestParam("dateReviewed") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateReviewed,
         @ApiParam("comments") @RequestParam String comments
         )
         {
@@ -80,11 +81,11 @@ public class MenuItemReviewController extends ApiController {
     @DeleteMapping("")
     public Object deleteReview(
             @ApiParam("id") @RequestParam Long id) {
-        MenuItemReview review = menuItemReviewRepository.findById(id)
+                MenuItemReview review = menuItemReviewRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(MenuItemReview.class, id));
 
         menuItemReviewRepository.delete(review);
-        return genericMessage("MenuItemReview with id %s deleted".formatted(review));
+        return genericMessage("MenuItemReview with id %s deleted".formatted(id));
     }
 
     @ApiOperation(value = "Update a single review")
@@ -94,7 +95,7 @@ public class MenuItemReviewController extends ApiController {
             @ApiParam("id") @RequestParam Long id,
             @RequestBody @Valid MenuItemReview incoming) {
 
-        MenuItemReview review = menuItemReviewRepository.findById(id)
+            MenuItemReview review = menuItemReviewRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(MenuItemReview.class, id));
 
         review.setItemId(incoming.getItemId());
