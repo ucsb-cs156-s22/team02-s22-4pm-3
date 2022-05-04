@@ -8,7 +8,10 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,97 +23,98 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+
 import java.time.LocalDateTime;
 
-@Api(description = "HelpRequest")
+@Api(description = "Help Request")
 @RequestMapping("/api/helprequest")
 @RestController
 @Slf4j
-public class HelpRequestController extends ApiController{
+public class HelpRequestController extends ApiController {
+
     @Autowired
     HelpRequestRepository helpRequestRepository;
 
-    @ApiOperation(value = "List all help request")
+    @ApiOperation(value = "List all help requests")
     @PreAuthorize("hasRole('ROLE_USER')")
     @GetMapping("/all")
-    public Iterable<HelpRequest> allCommonss() {
-        Iterable<HelpRequest> requests = helpRequestRepository.findAll();
-        return requests;
+    public Iterable<HelpRequest> allHelpRequests() {
+        Iterable<HelpRequest> helpRequests = helpRequestRepository.findAll();
+        return helpRequests;
     }
 
-    @ApiOperation(value = "Get a single request")
+    @ApiOperation(value = "Get a single help request")
     @PreAuthorize("hasRole('ROLE_USER')")
     @GetMapping("")
     public HelpRequest getById(
-            @ApiParam("code") @RequestParam String code) {
-                HelpRequest requests = helpRequestRepository.findById(code)
-                .orElseThrow(() -> new EntityNotFoundException(HelpRequest.class, code));
+            @ApiParam("Help Request ID") @RequestParam Long id) {
+        HelpRequest helpRequest = helpRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(HelpRequest.class, id));
 
-        return requests;
+        return helpRequest;
     }
 
-    @ApiOperation(value = "Create a new request")
+    @ApiOperation(value = "Create a new help request")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/post")
-    public HelpRequest postCommons(
-        @ApiParam("code") @RequestParam String code, //do i need this
+    public HelpRequest postHelpRequest(
+            @ApiParam("email of the requester") @RequestParam String requesterEmail,
+            @ApiParam("team-id") @RequestParam String teamId,
+            @ApiParam("table or breakout room?") @RequestParam String tableOrBreakoutRoom,
+            @ApiParam("date (in iso format, e.g. YYYY-mm-ddTHH:MM:SS; see https://en.wikipedia.org/wiki/ISO_8601)") @RequestParam("requestTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime requestTime,
+            @ApiParam("detailed explanation") @RequestParam String explanation,
+            @ApiParam("help request solved?") @RequestParam boolean solved)
+            throws JsonProcessingException {
 
-        @ApiParam("requesterEmail") @RequestParam String requesterEmail,
-        @ApiParam("teamId") @RequestParam String teamId,
-        @ApiParam("tableOrBreakoutRoom") @RequestParam String tableOrBreakoutRoom,
-        @ApiParam("requestTime") @RequestParam LocalDateTime requestTime,
-        @ApiParam("explanation") @RequestParam String explanation,
-        @ApiParam("solved") @RequestParam boolean solved
-        )
-        {
+        // For an explanation of @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        // See: https://www.baeldung.com/spring-date-parameters
 
-            HelpRequest requests = new HelpRequest();
-            // requests.setCode(code);
-            requests.setRequesterEmail(requesterEmail);
-            requests.setTeamId(teamId);
-            requests.setTableOrBreakoutRoom(tableOrBreakoutRoom);
-            requests.setRequestTime(requestTime);
-            requests.setExplanation(explanation);
-            requests.setSolved(solved);
+        log.info("requestTime={}", requestTime);
 
-            HelpRequest savedRequests = helpRequestRepository.save(requests);
+        HelpRequest helpRequest = new HelpRequest();
+        helpRequest.setRequesterEmail(requesterEmail);
+        helpRequest.setTeamId(teamId);
+        helpRequest.setTableOrBreakoutRoom(tableOrBreakoutRoom);
+        helpRequest.setRequestTime(requestTime);
+        helpRequest.setExplanation(explanation);
+        helpRequest.setSolved(solved);
+      
+        HelpRequest savedHelpRequest = helpRequestRepository.save(helpRequest);
 
-        return savedRequests;
+        return savedHelpRequest;
     }
 
-    @ApiOperation(value = "Delete a HelpRequest")
+    @ApiOperation(value = "Delete a help request")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("")
-    public Object deleteCommons(
-            @ApiParam("code") @RequestParam String code) {
-                HelpRequest requests = helpRequestRepository.findById(code)
-                .orElseThrow(() -> new EntityNotFoundException(HelpRequest.class, code));
+    public Object deleteHelpRequest(
+            @ApiParam("id") @RequestParam Long id) {
+        HelpRequest helpRequest = helpRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(HelpRequest.class, id));
 
-                helpRequestRepository.delete(requests);
-        return genericMessage("HelpRequest with id %s deleted".formatted(code));
+        helpRequestRepository.delete(helpRequest);
+        return genericMessage("Help Request with id %s deleted".formatted(id));
     }
 
-    @ApiOperation(value = "Update a single request")
+    @ApiOperation(value = "Update a single help request")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("")
-    public HelpRequest updateCommons(
-            @ApiParam("code") @RequestParam String code,
+    public HelpRequest updateHelpRequest(
+            @ApiParam("id") @RequestParam Long id,
             @RequestBody @Valid HelpRequest incoming) {
 
-                HelpRequest requests = helpRequestRepository.findById(code)
-                .orElseThrow(() -> new EntityNotFoundException(HelpRequest.class, code));
+        HelpRequest helpRequest = helpRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(HelpRequest.class, id));
 
+                helpRequest.setRequesterEmail(incoming.getRequesterEmail());
+                helpRequest.setTeamId(incoming.getTeamId());
+                helpRequest.setTableOrBreakoutRoom(incoming.getTableOrBreakoutRoom());
+                helpRequest.setRequestTime(incoming.getRequestTime());
+                helpRequest.setExplanation(incoming.getExplanation());
+                helpRequest.setSolved(incoming.getSolved());
 
-                // requests.setCode(incoming.getCode());  
-                requests.setRequesterEmail(incoming.getRequesterEmail());
-                requests.setTeamId(incoming.getTeamId());
-                requests.setTableOrBreakoutRoom(incoming.getTableOrBreakoutRoom());
-                requests.setRequestTime(incoming.getRequestTime());
-                requests.setExplanation(incoming.getExplanation());
-                requests.setSolved(incoming.getSolved());
+        helpRequestRepository.save(helpRequest);
 
-                helpRequestRepository.save(requests);
-
-        return requests;
+        return helpRequest;
     }
 }
