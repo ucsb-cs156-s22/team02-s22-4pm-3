@@ -193,14 +193,14 @@ public class RecommendationControllerTests extends ControllerTestCase {
                                 .explanation("string")
                                 .dateRequested(ldt1)
                                 .dateNeeded(ldt2)
-                                .done(false)
+                                .done(true)
                                 .build();
 
                 when(recommendationRepository.save(eq(recommendation1))).thenReturn(recommendation1);
 
                 // act
                 MvcResult response = mockMvc.perform(
-                                post("/api/Recommendation/post?requesterEmail=stud@ucsb.edu&professorEmail=prof@ucsb.edu&explanation=string&dateRequested=2022-01-03T00:00:00&dateNeeded=2022-02-03T00:00:00&done=false")
+                                post("/api/Recommendation/post?requesterEmail=stud@ucsb.edu&professorEmail=prof@ucsb.edu&explanation=string&dateRequested=2022-01-03T00:00:00&dateNeeded=2022-02-03T00:00:00&done=true")
                                                 .with(csrf()))
                                 .andExpect(status().isOk()).andReturn();
 
@@ -281,13 +281,16 @@ public class RecommendationControllerTests extends ControllerTestCase {
                                 .done(false)
                                 .build();
 
+                LocalDateTime ldt3 = LocalDateTime.parse("2022-02-03T00:00:00");
+                LocalDateTime ldt4 = LocalDateTime.parse("2023-02-03T00:00:00");
+
                 Recommendation recommendationEdited = Recommendation.builder()
-                                .requesterEmail("stud@ucsb.edu")
-                                .professorEmail("prof@ucsb.edu")
-                                .explanation("string")
-                                .dateRequested(ldt1)
-                                .dateNeeded(ldt2)
-                                .done(false)
+                                .requesterEmail("stud1@ucsb.edu")
+                                .professorEmail("prof1@ucsb.edu")
+                                .explanation("string1")
+                                .dateRequested(ldt3)
+                                .dateNeeded(ldt4)
+                                .done(true)
                                 .build();
 
                 String requestBody = mapper.writeValueAsString(recommendationEdited);
