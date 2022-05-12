@@ -23,6 +23,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.Valid;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 
 @Api(description = "MenuItemReview")
 @RequestMapping("/api/MenuItemReview")
@@ -62,7 +64,9 @@ public class MenuItemReviewController extends ApiController {
         @ApiParam("dateReviewed (in iso format, e.g. YYYY-mm-ddTHH:MM:SS; see https://en.wikipedia.org/wiki/ISO_8601)") @RequestParam("dateReviewed") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateReviewed,
         @ApiParam("comments") @RequestParam String comments
         )
-        {
+        throws JsonProcessingException{
+
+        log.info("dateReviewed={}", dateReviewed);
 
         MenuItemReview review = new MenuItemReview();
         review.setItemId(itemId);
