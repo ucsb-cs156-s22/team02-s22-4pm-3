@@ -15,6 +15,7 @@ import lombok.Builder;
 @Entity(name = "helprequest")
 public class HelpRequest {
     @Id
+    private long id;
     private String requesterEmail;
     private String teamId;
     private String tableOrBreakoutRoom;
